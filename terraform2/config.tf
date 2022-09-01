@@ -122,7 +122,27 @@ resource "yandex_compute_instance" "vm-2" {
     user-data = "${file("/home/user/terraform2/meta-2.txt")}"
   }
   
- 
+  provisioner "remote-exec" {
+       inline = [
+        "sudo apt update",
+        "sudo apt install tomcat9 awscli -y ",
+        "aws --profile default configure set aws_access_key_id ${yandex_iam_service_account_static_access_key.sa-static-key.access_key}",
+        "aws --profile default configure set aws_secret_access_key ${yandex_iam_service_account_static_access_key.sa-static-key.secret_key}",
+        "aws configure set region ${var.region}",
+        "aws --endpoint-url=https://storage.yandexcloud.net/ s3 cp s3://${local.bucket_name}/hello-1.0.war /var/lib/tomcat9/webapps/",
+        "mv /var/lib/tomcat9/webapps/hello-1.0.war /var/lib/tomcat9/webapps/hello.war",
+        "sudo systemctl restart tomcat9"
+      ]
+      connection {
+        type     = "ssh"
+		user     = "ubuntu"
+        private_key = file(var.private_key_path)
+        host = "${yandex_compute_instance.vm-2.network_interface.0.nat_ip_address}"
+      }
+    }
+   depends_on = [
+      yandex_compute_instance.vm-1
+    ]
  }
  
 
