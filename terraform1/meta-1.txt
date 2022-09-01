@@ -1,0 +1,10 @@
+users:
+  - name: user
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-rsa <ssh-keys> olgaiz@gmail.com
+      - ssh-rsa <ssh-keys> root@vm-1
+
+	
