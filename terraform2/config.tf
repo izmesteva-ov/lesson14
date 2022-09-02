@@ -2,9 +2,9 @@ terraform {
   required_providers {
     yandex = {
       source = "yandex-cloud/yandex"
+      version = "0.77.0"
     }
   }
-  required_version = ">= 0.13"
 }
 
 provider "yandex" {
@@ -24,11 +24,6 @@ resource "yandex_vpc_subnet" "subnet1" {
   network_id     = yandex_vpc_network.network1.id
   v4_cidr_blocks = ["10.240.1.0/24"]
 }
-
-data "yandex_compute_image" "ubuntu-20-04" {
-  family = "ubuntu-2004-lts"
-}
-
 
 
 resource "yandex_iam_service_account" "sa" {
@@ -62,9 +57,8 @@ resource "yandex_compute_instance" "vm-1" {
     memory = 2
   }
   boot_disk {
-    mode = "READ_WRITE"
     initialize_params {
-      image_id = data.yandex_compute_image.ubuntu-20-04.id
+      image_id = "fd8uoiksr520scs811jl"
     }
   }
   network_interface {
@@ -79,7 +73,6 @@ resource "yandex_compute_instance" "vm-1" {
 
 provisioner "remote-exec" {
     inline = [
-	  "echo '${var.user}:${var.password}' | sudo chpasswd",
       "sudo apt update",
 	  "sudo apt install git maven openjdk-8-jdk awscli -y ",
       "git clone https://github.com/boxfuse/boxfuse-sample-java-war-hello.git /home/user/boxfuse",
@@ -106,11 +99,8 @@ resource "yandex_compute_instance" "vm-2" {
      memory = 2
    }	
    boot_disk {
-    mode = "READ_WRITE"
     initialize_params {
-      image_id = data.yandex_compute_image.ubuntu-20-04.id
-      type = "network-ssd"
-      size = 100
+      image_id = "fd8uoiksr520scs811jl"
     }
   }	
   network_interface {
@@ -144,13 +134,3 @@ resource "yandex_compute_instance" "vm-2" {
       yandex_compute_instance.vm-1
     ]
  }
- 
-
-
-output "vm_1" {
-  value = yandex_compute_instance.vm-1.network_interface.0.nat_ip_address
-}
-
-output "vm_2" {
-  value = yandex_compute_instance.vm-2.network_interface.0.nat_ip_address
-}
